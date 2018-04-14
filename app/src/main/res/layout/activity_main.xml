@@ -1,24 +1,54 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/my_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+<android.support.design.widget.AppBarLayout
+  android:layout_width="match_parent"
+  android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+  android:layout_height="wrap_content">
+
+  <android.support.v7.widget.Toolbar
+    android:id="@+id/my_toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:background="?attr/colorPrimary"
+    app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+</android.support.design.widget.AppBarLayout>
 
     <RelativeLayout
+      app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+      <TextView
+        android:layout_width="match_parent"
+        android:id="@+id/status"
+        android:textSize="25sp"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:textColor="@color/colorFill"
+        android:layout_height="wrap_content" />
+
+      <Button
+        android:id="@+id/btnStart"
+        android:layout_width="match_parent"
+        android:layout_centerInParent="true"
+        android:text="запуск сервиса"
+        android:layout_height="wrap_content" />
+
+      <Button
+        android:id="@+id/btnStop"
+        android:layout_width="match_parent"
+        android:layout_below="@id/btnStart"
+        android:enabled="false"
+        android:text="остановка сервиса"
+        android:layout_height="wrap_content" />
 
     </RelativeLayout>
 
 
-</LinearLayout>
+</android.support.design.widget.CoordinatorLayout>

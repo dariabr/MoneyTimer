@@ -17,8 +17,9 @@ public class MainActivity extends AppCompatActivity {
 
   private Toolbar mTopToolbar;
   private Button btnStart;
+  private Button btnPause;
   private Button btnStop;
-  private TextView textView;
+  private TextView statusTextView;
 
   private BroadcastReceiver timerBroadcastReceiver;
   private Intent service;
@@ -39,21 +40,23 @@ public class MainActivity extends AppCompatActivity {
 
   private void initViews() {
 
-    mTopToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+    mTopToolbar = findViewById(R.id.my_toolbar);
     setSupportActionBar(mTopToolbar);
 
-    btnStart = (Button) findViewById(R.id.btnStart);
+    btnStart = findViewById(R.id.btnStart);
 
-    btnStop = (Button) findViewById(R.id.btnStop);
+    btnPause = findViewById(R.id.btnPause);
 
-    textView = (TextView) findViewById(R.id.status);
+    btnStop = findViewById(R.id.btnStop);
+
+    statusTextView = findViewById(R.id.status);
   }
 
   private void initBroadcast() {
     intentFilter = new IntentFilter();
 
-    intentFilter.addAction(Const.TIMER_BTN_ACTION);
-    intentFilter.addAction(Const.TIMER_VALUE_ACTION);
+    intentFilter.addAction(Const.COMMON_TIMER_BTN_ACTION);
+    intentFilter.addAction(Const.BROADCAST_TIMER_VALUE_ACTION);
 
     timerBroadcastReceiver = new BroadcastReceiver() {
       @Override
@@ -64,16 +67,31 @@ public class MainActivity extends AppCompatActivity {
         }
 
         switch (intent.getAction()) {
-          case Const.TIMER_BTN_ACTION:
-            String timerStatus = intent.getStringExtra(Const.TIMER_STATUS);
+          case Const.COMMON_TIMER_BTN_ACTION:
+            String timerStatus = intent.getStringExtra(Const.RUNNING_STATUS);
 
-            btnStart.setEnabled(timerStatus.equals(Const.STATUS_STOP));
-            btnStop.setEnabled(timerStatus.equals(Const.STATUS_START));
+            if (timerStatus.equals(Const.STATUS_START)) {
+              btnStart.setEnabled(false);
+              btnPause.setEnabled(true);
+              btnStop.setEnabled(true);
+            }
+
+            if (timerStatus.equals(Const.STATUS_PAUSE)) {
+              btnStart.setEnabled(true);
+              btnPause.setEnabled(false);
+              btnStop.setEnabled(true);
+            }
+
+            if (timerStatus.equals(Const.STATUS_STOP)) {
+              btnStart.setEnabled(true);
+              btnPause.setEnabled(false);
+              btnStop.setEnabled(false);
+            }
+
 
             break;
-          case Const.TIMER_VALUE_ACTION:
-            String timerValue = intent.getStringExtra(Const.TIMER_VALUE);
-            textView.setText(timerValue);
+          case Const.BROADCAST_TIMER_VALUE_ACTION:
+            statusTextView.setText(TimeUtils.formatTime(intent.getLongExtra(Const.TIMER_VALUE, 0)));
             break;
         }
       }
@@ -84,20 +102,20 @@ public class MainActivity extends AppCompatActivity {
   private void handleListeners() {
     service = new Intent(MainActivity.this, TimerService.class);
 
-    btnStart.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        startService(service);
-      }
+    btnStart.setOnClickListener(v -> {
+      service.setAction(Const.STATUS_START);
+      startService(service);
     });
 
-    btnStop.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        //TODO лучше посылать intent в серсис с флагом stop и внутри него остонавливать всю работу
-        //https://gist.github.com/sunmeat/c7e824f9c1e83c85e987c70e1ef8bb35
-        stopService(service);
-      }
+    btnPause.setOnClickListener(v -> {
+      service.setAction(Const.STATUS_PAUSE);
+      startService(service);
+    });
+
+    btnStop.setOnClickListener(v -> {
+      service.setAction(Const.STATUS_STOP);
+      startService(service);
+      statusTextView.setText("0");
     });
   }
 

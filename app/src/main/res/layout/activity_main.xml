@@ -30,6 +30,7 @@
         android:textSize="25sp"
         android:layout_marginTop="16dp"
         android:gravity="center"
+        android:text="0"
         android:textColor="@color/colorFill"
         android:layout_height="wrap_content" />
 
@@ -41,9 +42,17 @@
         android:layout_height="wrap_content" />
 
       <Button
-        android:id="@+id/btnStop"
+        android:id="@+id/btnPause"
         android:layout_width="match_parent"
         android:layout_below="@id/btnStart"
+        android:enabled="false"
+        android:text="пауза сервиса"
+        android:layout_height="wrap_content" />
+
+      <Button
+        android:id="@+id/btnStop"
+        android:layout_width="match_parent"
+        android:layout_below="@id/btnPause"
         android:enabled="false"
         android:text="остановка сервиса"
         android:layout_height="wrap_content" />

@@ -6,67 +6,88 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.v7.app.NotificationCompat;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class TimerService extends Service {
 
   public static final String TAG = TimerService.class.getName();
 
   Intent timerBtnIntent;
-  private boolean isStartedService = false;
-  private Thread timerThread;
+
   private Intent timerValueIntent;
+
+  private long time;
+  private boolean isRunning;
+  private Thread timerThread;
 
   @Override
   public void onCreate() {
     super.onCreate();
 
-    timerBtnIntent = new Intent(Const.TIMER_BTN_ACTION);
-    timerValueIntent = new Intent(Const.TIMER_VALUE_ACTION);
+    timerBtnIntent = new Intent(Const.COMMON_TIMER_BTN_ACTION);
+    timerValueIntent = new Intent(Const.BROADCAST_TIMER_VALUE_ACTION);
 
-    timerBtnIntent.putExtra(Const.TIMER_STATUS, Const.STATUS_START);
-
-    sendBroadcast(timerBtnIntent);
-
-    isStartedService = true;
+    initCounterTime();
 
     Log.d(TAG, "onCreate");
   }
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
+    if (intent.getAction() != null) {
+      switch (intent.getAction()) {
+        case Const.STATUS_START:
+          isRunning = true;
+          timerBtnIntent.putExtra(Const.RUNNING_STATUS, Const.STATUS_START);
+          initCounterTime();
+          break;
+        case Const.STATUS_PAUSE:
+          killThread();
+          timerBtnIntent.putExtra(Const.RUNNING_STATUS, Const.STATUS_PAUSE);
+          break;
+        case Const.STATUS_STOP:
+          killThread();
+          timerBtnIntent.putExtra(Const.RUNNING_STATUS, Const.STATUS_STOP);
+          stopForeground(true);
+          stopSelf();
+          break;
+      }
 
-    Log.d(TAG, "onStartCommand: intent: " + intent.getAction() + " flag: " + flags + " startId" + startId);
+      sendBroadcast(timerBtnIntent);
+    } else {
+      stopSelf();
+    }
 
-    initTimerThread();
-
-    return super.onStartCommand(intent, flags, startId);
+    return START_STICKY;
   }
 
-  private void initTimerThread() {
+  private void killThread() {
+    isRunning = false;
+    try {
+      timerThread.join();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
 
+  private void initCounterTime() {
     timerThread = new Thread() {
       @Override
       public void run() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:S", Locale.getDefault());
+          while (isRunning) {
 
-        while (isStartedService) {
+            timerValueIntent.putExtra(Const.TIMER_VALUE, time);
 
-          String value = dateFormat.format(new Date(System.currentTimeMillis()));
-          timerValueIntent.putExtra(Const.TIMER_VALUE, value);
+            sendBroadcast(timerBtnIntent);
+            sendBroadcast(timerValueIntent);
 
-          startForeground(Const.TIMER_NOTIFICATION_ID, updateNotification(value));
+            startForeground(Const.NOTIFICATION_ID, updateNotification(TimeUtils.formatTime(time)));
 
-          sendBroadcast(timerValueIntent);
-
-        }
+            time+= 1;
+          }
       }
     };
-
     timerThread.start();
   }
 
@@ -77,7 +98,7 @@ public class TimerService extends Service {
         .setSmallIcon(R.mipmap.ic_launcher)
         .setContentTitle("MoneyTimer")
         .setContentText(text)
-        .setContentIntent(PendingIntent.getActivity(this, 0,intent, 0))
+        .setContentIntent(PendingIntent.getActivity(this, 0, intent, 0))
         .setOngoing(true)
         .build();
   }
@@ -86,10 +107,6 @@ public class TimerService extends Service {
   public void onDestroy() {
     super.onDestroy();
     Log.d(TAG, "onDestroy");
-    stopForeground(true);
-    timerBtnIntent.putExtra(Const.TIMER_STATUS, Const.STATUS_STOP);
-    sendBroadcast(timerBtnIntent);
-    isStartedService = false;
   }
 
   @Nullable

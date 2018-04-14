@@ -1,8 +1,5 @@
 package com.joyfullkiwi.moneytimer;
 
-import static com.joyfullkiwi.moneytimer.Const.TIMER_NOTIFICATION_ID;
-import static com.joyfullkiwi.moneytimer.Const.TIMER_PERMISSION;
-
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -19,22 +16,58 @@ public class TimerService extends Service {
 
   public static final String TAG = TimerService.class.getName();
 
-  Intent timerIntent;
+  Intent timerBtnIntent;
   private boolean isStartedService = false;
   private Thread timerThread;
+  private Intent timerValueIntent;
 
   @Override
   public void onCreate() {
     super.onCreate();
 
-    timerIntent = new Intent(Const.TIMER_ACTION);
+    timerBtnIntent = new Intent(Const.TIMER_BTN_ACTION);
+    timerValueIntent = new Intent(Const.TIMER_VALUE_ACTION);
 
-    timerIntent.putExtra(Const.TIMER_STATUS, Const.STATUS_START);
-    sendBroadcast(timerIntent);
+    timerBtnIntent.putExtra(Const.TIMER_STATUS, Const.STATUS_START);
+
+    sendBroadcast(timerBtnIntent);
 
     isStartedService = true;
 
     Log.d(TAG, "onCreate");
+  }
+
+  @Override
+  public int onStartCommand(Intent intent, int flags, int startId) {
+
+    Log.d(TAG, "onStartCommand: intent: " + intent.getAction() + " flag: " + flags + " startId" + startId);
+
+    initTimerThread();
+
+    return super.onStartCommand(intent, flags, startId);
+  }
+
+  private void initTimerThread() {
+
+    timerThread = new Thread() {
+      @Override
+      public void run() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:S", Locale.getDefault());
+
+        while (isStartedService) {
+
+          String value = dateFormat.format(new Date(System.currentTimeMillis()));
+          timerValueIntent.putExtra(Const.TIMER_VALUE, value);
+
+          startForeground(Const.TIMER_NOTIFICATION_ID, updateNotification(value));
+
+          sendBroadcast(timerValueIntent);
+
+        }
+      }
+    };
+
+    timerThread.start();
   }
 
   private Notification updateNotification(String text) {
@@ -50,45 +83,12 @@ public class TimerService extends Service {
   }
 
   @Override
-  public int onStartCommand(Intent intent, int flags, int startId) {
-
-    Log.d(TAG,
-        "onStartCommand: intent: " + intent.getAction() + " flag: " + flags + " startId" + startId);
-
-    initTimerThread();
-
-    return super.onStartCommand(intent, flags, startId);
-  }
-
-  private void initTimerThread() {
-    timerThread = new Thread() {
-      @Override
-      public void run() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:S", Locale.getDefault());
-
-        while (isStartedService) {
-
-          String value = dateFormat.format(new Date(System.currentTimeMillis()));
-          timerIntent.putExtra(Const.TIMER_VALUE, value);
-
-          startForeground(Const.TIMER_NOTIFICATION_ID, updateNotification(value));
-
-          sendBroadcast(timerIntent, TIMER_PERMISSION);
-
-        }
-      }
-    };
-
-    timerThread.start();
-  }
-
-  @Override
   public void onDestroy() {
     super.onDestroy();
     Log.d(TAG, "onDestroy");
     stopForeground(true);
-    timerIntent.putExtra(Const.TIMER_STATUS, Const.STATUS_STOP);
-    sendBroadcast(timerIntent);
+    timerBtnIntent.putExtra(Const.TIMER_STATUS, Const.STATUS_STOP);
+    sendBroadcast(timerBtnIntent);
     isStartedService = false;
   }
 

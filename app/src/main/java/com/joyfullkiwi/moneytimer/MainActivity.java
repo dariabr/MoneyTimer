@@ -1,7 +1,5 @@
 package com.joyfullkiwi.moneytimer;
 
-import static com.joyfullkiwi.moneytimer.Const.TIMER_PERMISSION;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,7 +7,6 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -53,29 +50,31 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void initBroadcast() {
-    intentFilter = new IntentFilter(Const.TIMER_ACTION);
+    intentFilter = new IntentFilter();
+
+    intentFilter.addAction(Const.TIMER_BTN_ACTION);
+    intentFilter.addAction(Const.TIMER_VALUE_ACTION);
+
     timerBroadcastReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
-        Log.d(TimerService.TAG, "onReceive: " + intent.getAction());
 
-        String timerStatus = intent.getStringExtra(Const.TIMER_STATUS);
-
-        System.out.println("timerStatus = " + timerStatus);
-
-        if (timerStatus.equals(Const.STATUS_START)) {
-          btnStart.setEnabled(false);
-          btnStop.setEnabled(true);
+        if (intent.getAction() == null) {
+          return;
         }
 
-        if (timerStatus.equals(Const.STATUS_STOP)) {
-          btnStart.setEnabled(true);
-          btnStop.setEnabled(false);
-        }
+        switch (intent.getAction()) {
+          case Const.TIMER_BTN_ACTION:
+            String timerStatus = intent.getStringExtra(Const.TIMER_STATUS);
 
-        String timerValue = intent.getStringExtra(Const.TIMER_VALUE);
-        if (timerValue != null) {
-          textView.setText(timerValue);
+            btnStart.setEnabled(timerStatus.equals(Const.STATUS_STOP));
+            btnStop.setEnabled(timerStatus.equals(Const.STATUS_START));
+
+            break;
+          case Const.TIMER_VALUE_ACTION:
+            String timerValue = intent.getStringExtra(Const.TIMER_VALUE);
+            textView.setText(timerValue);
+            break;
         }
       }
     };
@@ -105,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onStart() {
     super.onStart();
-    registerReceiver(timerBroadcastReceiver, intentFilter, TIMER_PERMISSION, null);
+    registerReceiver(timerBroadcastReceiver, intentFilter);
   }
 
   @Override

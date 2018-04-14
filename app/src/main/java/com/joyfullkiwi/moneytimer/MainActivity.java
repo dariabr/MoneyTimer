@@ -8,8 +8,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -20,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
   private Button btnPause;
   private Button btnStop;
   private TextView statusTextView;
+  private TextView moneyTextView;
 
   private BroadcastReceiver timerBroadcastReceiver;
   private Intent service;
@@ -31,8 +30,6 @@ public class MainActivity extends AppCompatActivity {
     setContentView(R.layout.activity_main);
 
     initViews();
-
-    statusTextView.setText(TimeUtils.formatTime(0));
 
     initBroadcast();
 
@@ -52,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
     btnStop = findViewById(R.id.btnStop);
 
     statusTextView = findViewById(R.id.status);
+
+    moneyTextView = findViewById(R.id.money);
+
+    statusTextView.setText(TimeUtils.formatTime(0));
+    moneyTextView.setText(TimeUtils.formatMoney(8, 0));
+
   }
 
   private void initBroadcast() {
@@ -93,7 +96,9 @@ public class MainActivity extends AppCompatActivity {
 
             break;
           case Const.BROADCAST_TIMER_VALUE_ACTION:
-            statusTextView.setText(TimeUtils.formatTime(intent.getLongExtra(Const.TIMER_VALUE, 0)));
+            long time = intent.getLongExtra(Const.TIMER_VALUE, 0);
+            statusTextView.setText(TimeUtils.formatTime(time));
+            moneyTextView.setText(TimeUtils.formatMoney(8,time));
             break;
         }
       }
@@ -118,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
       service.setAction(Const.STATUS_STOP);
       startService(service);
       statusTextView.setText(TimeUtils.formatTime(0));
+      moneyTextView.setText(TimeUtils.formatMoney(8, 0));
     });
   }
 

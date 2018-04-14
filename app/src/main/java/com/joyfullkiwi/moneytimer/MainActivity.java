@@ -32,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
 
     initViews();
 
+    statusTextView.setText(TimeUtils.formatTime(0));
+
     initBroadcast();
 
     handleListeners();
@@ -115,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
     btnStop.setOnClickListener(v -> {
       service.setAction(Const.STATUS_STOP);
       startService(service);
-      statusTextView.setText("0");
+      statusTextView.setText(TimeUtils.formatTime(0));
     });
   }
 

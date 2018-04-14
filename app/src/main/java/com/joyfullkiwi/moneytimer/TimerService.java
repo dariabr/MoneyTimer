@@ -85,7 +85,7 @@ public class TimerService extends Service {
 
             startForeground(Const.NOTIFICATION_ID, updateNotification(TimeUtils.formatTime(time)));
 
-            time+= 1;
+            time++;
           }
       }
     };

@@ -27,10 +27,9 @@
       <TextView
         android:layout_width="match_parent"
         android:id="@+id/status"
-        android:textSize="25sp"
+        android:textSize="35sp"
         android:layout_marginTop="16dp"
         android:gravity="center"
-        android:text="0"
         android:textColor="@color/colorFill"
         android:layout_height="wrap_content" />
 

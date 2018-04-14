@@ -4,7 +4,10 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Handler.Callback;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -27,8 +30,6 @@ public class TimerService extends Service {
 
     timerBtnIntent = new Intent(Const.COMMON_TIMER_BTN_ACTION);
     timerValueIntent = new Intent(Const.BROADCAST_TIMER_VALUE_ACTION);
-
-    initCounterTime();
 
     Log.d(TAG, "onCreate");
   }

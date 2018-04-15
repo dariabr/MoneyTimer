@@ -1,7 +1,6 @@
 package com.joyfullkiwi.moneytimer;
 
 import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -11,7 +10,7 @@ import android.util.Log;
 
 public class TimerService extends Service {
 
-  public static final String TAG = TimerService.class.getName();
+  public static final String TAG = "Service";
 
   Intent timerBtnIntent;
 
@@ -33,6 +32,7 @@ public class TimerService extends Service {
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
+    Log.d(TAG, "onStartCommand");
     if (intent.getAction() != null) {
       switch (intent.getAction()) {
         case Const.STATUS_START:
@@ -96,18 +96,15 @@ public class TimerService extends Service {
       } catch (InterruptedException e) {
       }
     }
-    //todo send broadcast
   }
 
   private Notification updateNotification(String text) {
-    Intent intent = new Intent(this, MainActivity.class);
-    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
     return new NotificationCompat.Builder(this)
         .setSmallIcon(R.mipmap.ic_launcher)
         .setContentTitle("MoneyTimer")
         .setContentText(text)
-        .setContentIntent(PendingIntent.getActivity(this, 0, intent, 0))
         .setOngoing(true)
+        .setAutoCancel(false)
         .build();
   }
 

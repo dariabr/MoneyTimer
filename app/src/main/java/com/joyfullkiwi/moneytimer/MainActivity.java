@@ -122,8 +122,6 @@ public class MainActivity extends AppCompatActivity {
     btnStop.setOnClickListener(v -> {
       service.setAction(Const.STATUS_STOP);
       startService(service);
-      statusTextView.setText(TimeUtils.formatTime(0));
-      moneyTextView.setText(TimeUtils.formatMoney(8, 0));
     });
   }
 

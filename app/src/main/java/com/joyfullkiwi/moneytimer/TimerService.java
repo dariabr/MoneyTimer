@@ -36,22 +36,26 @@ public class TimerService extends Service {
     if (intent.getAction() != null) {
       switch (intent.getAction()) {
         case Const.STATUS_START:
-          isRunning = true;
           timerBtnIntent.putExtra(Const.RUNNING_STATUS, Const.STATUS_START);
-          initCounterTime();
+          startThread();
           break;
         case Const.STATUS_PAUSE:
-          killThread();
           timerBtnIntent.putExtra(Const.RUNNING_STATUS, Const.STATUS_PAUSE);
+          killThread();
           break;
         case Const.STATUS_STOP:
-          killThread();
           timerBtnIntent.putExtra(Const.RUNNING_STATUS, Const.STATUS_STOP);
+          killThread();
+          //Отправляем после остановки 0 значение
+          timerValueIntent.putExtra(Const.TIMER_VALUE, 0);
+          sendBroadcast(timerValueIntent);
+          //убераем из главной задачи поток
           stopForeground(true);
+          //полностью останавливаем его
           stopSelf();
           break;
       }
-
+      //после нажатия на кнопки, отправляем сразу текущее состояние в активити
       sendBroadcast(timerBtnIntent);
     } else {
       stopSelf();
@@ -60,33 +64,39 @@ public class TimerService extends Service {
     return START_STICKY;
   }
 
-  private void killThread() {
-    isRunning = false;
-    try {
-      timerThread.join();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-  }
-
-  private void initCounterTime() {
+  private void startThread() {
+    isRunning = true;
     timerThread = new Thread() {
       @Override
       public void run() {
-          while (isRunning) {
+        while (isRunning) {
 
-            timerValueIntent.putExtra(Const.TIMER_VALUE, time);
+          timerValueIntent.putExtra(Const.TIMER_VALUE, time);
 
-            sendBroadcast(timerBtnIntent);
-            sendBroadcast(timerValueIntent);
+          //постоянно отправляем текущее состояние и значение времени
+          sendBroadcast(timerBtnIntent);
+          sendBroadcast(timerValueIntent);
 
-            startForeground(Const.NOTIFICATION_ID, updateNotification(TimeUtils.formatTime(time)));
+          startForeground(Const.NOTIFICATION_ID, updateNotification(TimeUtils.formatMoney(8, time)));
 
-            time+= 10;
-          }
+          time += 10;
+        }
       }
     };
     timerThread.start();
+  }
+
+  private void killThread() {
+    boolean retry = true;
+    isRunning = false;
+    while (retry) {
+      try {
+        timerThread.join();
+        retry = false;
+      } catch (InterruptedException e) {
+      }
+    }
+    //todo send broadcast
   }
 
   private Notification updateNotification(String text) {

@@ -49,28 +49,34 @@
         android:textColor="@color/colorFill"
         android:layout_height="wrap_content" />
 
-      <Button
-        android:id="@+id/btnStart"
+      <LinearLayout
         android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center"
         android:layout_centerInParent="true"
-        android:text="запуск сервиса"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content">
+        <Button
+          android:id="@+id/btnStart"
+          android:layout_width="wrap_content"
+          android:text="старт"
+          android:layout_height="wrap_content" />
 
-      <Button
-        android:id="@+id/btnPause"
-        android:layout_width="match_parent"
-        android:layout_below="@id/btnStart"
-        android:enabled="false"
-        android:text="пауза сервиса"
-        android:layout_height="wrap_content" />
+        <Button
+          android:id="@+id/btnPause"
+          android:layout_width="wrap_content"
+          android:enabled="false"
+          android:text="пауза"
+          android:layout_height="wrap_content" />
 
-      <Button
-        android:id="@+id/btnStop"
-        android:layout_width="match_parent"
-        android:layout_below="@id/btnPause"
-        android:enabled="false"
-        android:text="остановка сервиса"
-        android:layout_height="wrap_content" />
+        <Button
+          android:id="@+id/btnStop"
+          android:layout_width="wrap_content"
+          android:enabled="false"
+          android:text="стоп"
+          android:layout_height="wrap_content" />
+      </LinearLayout>
+
+
 
     </RelativeLayout>
 

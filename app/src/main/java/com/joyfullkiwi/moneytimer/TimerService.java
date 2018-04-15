@@ -16,6 +16,7 @@ public class TimerService extends Service {
 
   private Intent timerValueIntent;
 
+  private long startTime = 0;
   private long time;
   private boolean isRunning;
   private Thread timerThread;
@@ -69,8 +70,9 @@ public class TimerService extends Service {
     timerThread = new Thread() {
       @Override
       public void run() {
+        startTime = System.currentTimeMillis() - time;
         while (isRunning) {
-
+          Log.d(TAG, "run: " + time);
           timerValueIntent.putExtra(Const.TIMER_VALUE, time);
 
           //постоянно отправляем текущее состояние и значение времени
@@ -79,7 +81,7 @@ public class TimerService extends Service {
 
           startForeground(Const.NOTIFICATION_ID, updateNotification(TimeUtils.formatMoney(8, time)));
 
-          time += 10;
+          time = (System.currentTimeMillis() - startTime);
         }
       }
     };

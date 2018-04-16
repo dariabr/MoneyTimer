@@ -7,9 +7,13 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.widget.Button;
 import android.widget.TextView;
+import com.joyfullkiwi.moneytimer.TimerManager.OnTimerListener;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -20,18 +24,45 @@ public class MainActivity extends AppCompatActivity {
   private TextView statusTextView;
   private TextView moneyTextView;
 
-  private BroadcastReceiver timerBroadcastReceiver;
-  private Intent service;
-  private IntentFilter intentFilter;
+  private TimerManager timerManager;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    initViews();
+    timerManager = new TimerManager(this);
 
-    initBroadcast();
+    timerManager.setOnTimerListener(new OnTimerListener() {
+      @Override
+      public void onHandleRunningStatus(String runningStatus) {
+        if (runningStatus.equals(Const.STATUS_START)) {
+          btnStart.setEnabled(false);
+          btnPause.setEnabled(true);
+          btnStop.setEnabled(true);
+        }
+
+        if (runningStatus.equals(Const.STATUS_PAUSE)) {
+          btnStart.setEnabled(true);
+          btnPause.setEnabled(false);
+          btnStop.setEnabled(true);
+        }
+
+        if (runningStatus.equals(Const.STATUS_STOP)) {
+          btnStart.setEnabled(true);
+          btnPause.setEnabled(false);
+          btnStop.setEnabled(false);
+        }
+      }
+
+      @Override
+      public void onTick(long time) {
+        statusTextView.setText(TimeUtils.formatTime(time));
+        moneyTextView.setText(TimeUtils.formatMoney(8, time));
+      }
+    });
+
+    initViews();
 
     handleListeners();
   }
@@ -57,84 +88,25 @@ public class MainActivity extends AppCompatActivity {
 
   }
 
-  private void initBroadcast() {
-    intentFilter = new IntentFilter();
-
-    intentFilter.addAction(Const.COMMON_TIMER_BTN_ACTION);
-    intentFilter.addAction(Const.BROADCAST_TIMER_VALUE_ACTION);
-
-    timerBroadcastReceiver = new BroadcastReceiver() {
-      @Override
-      public void onReceive(Context context, Intent intent) {
-
-        if (intent.getAction() == null) {
-          return;
-        }
-
-        switch (intent.getAction()) {
-          case Const.COMMON_TIMER_BTN_ACTION:
-            String timerStatus = intent.getStringExtra(Const.RUNNING_STATUS);
-
-            if (timerStatus.equals(Const.STATUS_START)) {
-              btnStart.setEnabled(false);
-              btnPause.setEnabled(true);
-              btnStop.setEnabled(true);
-            }
-
-            if (timerStatus.equals(Const.STATUS_PAUSE)) {
-              btnStart.setEnabled(true);
-              btnPause.setEnabled(false);
-              btnStop.setEnabled(true);
-            }
-
-            if (timerStatus.equals(Const.STATUS_STOP)) {
-              btnStart.setEnabled(true);
-              btnPause.setEnabled(false);
-              btnStop.setEnabled(false);
-            }
-
-
-            break;
-          case Const.BROADCAST_TIMER_VALUE_ACTION:
-            long time = intent.getLongExtra(Const.TIMER_VALUE, 0);
-            statusTextView.setText(TimeUtils.formatTime(time));
-            moneyTextView.setText(TimeUtils.formatMoney(8,time));
-            break;
-        }
-      }
-    };
-  }
-
 
   private void handleListeners() {
-    service = new Intent(MainActivity.this, TimerService.class);
+    btnStart.setOnClickListener(v -> timerManager.setRunningStatus(Const.STATUS_START));
 
-    btnStart.setOnClickListener(v -> {
-      service.setAction(Const.STATUS_START);
-      startService(service);
-    });
+    btnPause.setOnClickListener(v -> timerManager.setRunningStatus(Const.STATUS_PAUSE));
 
-    btnPause.setOnClickListener(v -> {
-      service.setAction(Const.STATUS_PAUSE);
-      startService(service);
-    });
-
-    btnStop.setOnClickListener(v -> {
-      service.setAction(Const.STATUS_STOP);
-      startService(service);
-    });
+    btnStop.setOnClickListener(v -> timerManager.setRunningStatus(Const.STATUS_STOP));
   }
 
   @Override
   protected void onStart() {
+    timerManager.checkSavedData();
     super.onStart();
-    registerReceiver(timerBroadcastReceiver, intentFilter);
   }
 
   @Override
   protected void onStop() {
     super.onStop();
-    unregisterReceiver(timerBroadcastReceiver);
+    timerManager.saveDataWhenExit();
   }
 
   // Menu icons are inflated just as they were with actionbar

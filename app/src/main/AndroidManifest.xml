@@ -2,12 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.joyfullkiwi.moneytimer">
 
-  <permission
-    android:label="timer_permission"
-    android:name="com.joyfullkiwi.timer.permission" />
-
-  <uses-permission android:name="com.joyfullkiwi.timer.permission"/>
-
   <application
     android:allowBackup="true"
     android:icon="@mipmap/ic_launcher"
@@ -22,7 +16,6 @@
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
-    <service android:name=".TimerService" />
   </application>
 
 </manifest>

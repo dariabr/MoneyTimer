@@ -7,6 +7,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import java.util.concurrent.TimeUnit;
 
 public class TimerService extends Service {
 
@@ -70,18 +71,25 @@ public class TimerService extends Service {
     timerThread = new Thread() {
       @Override
       public void run() {
-        startTime = System.currentTimeMillis() - time;
-        while (isRunning) {
-          Log.d(TAG, "run: " + time);
-          timerValueIntent.putExtra(Const.TIMER_VALUE, time);
+        try {
+          startTime = System.currentTimeMillis() - time;
+          while (isRunning) {
+            Log.d(TAG, "run: " + time);
+            timerValueIntent.putExtra(Const.TIMER_VALUE, time);
 
-          //постоянно отправляем текущее состояние и значение времени
-          sendBroadcast(timerBtnIntent);
-          sendBroadcast(timerValueIntent);
+            //постоянно отправляем текущее состояние и значение времени
+            sendBroadcast(timerBtnIntent);
+            sendBroadcast(timerValueIntent);
 
-          startForeground(Const.NOTIFICATION_ID, updateNotification(TimeUtils.formatMoney(8, time)));
+            startForeground(Const.NOTIFICATION_ID,
+                updateNotification(TimeUtils.formatMoney(8, time)));
 
-          time = (System.currentTimeMillis() - startTime);
+            TimeUnit.SECONDS.sleep(1);
+
+            time = (System.currentTimeMillis() - startTime);
+          }
+        } catch (InterruptedException e) {
+          e.printStackTrace();
         }
       }
     };
